@@ -5,7 +5,7 @@ namespace Car_Rental_Backend_Application.Data.Dto_s
 {
     public class UserDto
     {
-        public int User_Id;
+        public int User_ID;
 
         [Required]
         public string Username { get; set; }

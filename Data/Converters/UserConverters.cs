@@ -19,7 +19,7 @@ namespace Car_Rental_Backend_Application.Data.Converters
                 Phone_Number = ud.Phone_Number,
 
                 // Since UserDto contains only IDs, we must initialize these as empty lists or retrieve from DB
-                Bookings = ud.BookingIds?.Select(id => new Booking { Booking_ID = id }).ToList(),
+                Bookings = ud.BookingIds?.Select(id => new Booking { BookingId = id }).ToList(),
                 Reservations = ud.ReservationIds?.Select(id => new Reservation { Reservation_ID = id }).ToList()
             };
 
@@ -32,21 +32,19 @@ namespace Car_Rental_Backend_Application.Data.Converters
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
 
-            UserDto userDto = new UserDto()
+            return new UserDto()
             {
-                User_Id=user.User_ID,
+                User_ID = user.User_ID,
                 Username = user.Username,
                 Email = user.Email,
                 Address = user.Address,
-                Phone_Number = user.Phone_Number,
-                Password=user.Password,
+                Phone_Number = user.Phone_Number,  // Ensure consistent naming
 
-                // Correctly reference BookingIds and ReservationIds instead of missing Bookings/Reservations properties
-                BookingIds = user.Bookings?.Select(booking => booking.Booking_ID).ToList(),
-                ReservationIds = user.Reservations?.Select(reservation => reservation.Reservation_ID).ToList()
+                // Mapping Booking IDs and Reservation IDs safely
+                BookingIds = user.Bookings?.Select(booking => booking.BookingId).ToList() ?? new List<int>(),
+                ReservationIds = user.Reservations?.Select(reservation => reservation.Reservation_ID).ToList() ?? new List<int>()
             };
-
-            return userDto;
         }
+
     }
 }

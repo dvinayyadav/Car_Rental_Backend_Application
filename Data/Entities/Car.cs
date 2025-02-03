@@ -25,7 +25,8 @@ namespace Car_Rental_Backend_Application.Data.Entities
         // Relationships
         public ICollection<Booking> Bookings { get; set; } // A car can be associated with zero or more bookings
         public ICollection<Reservation> Reservations { get; set; } // A car can be associated with zero or more reservations
-        public Availability Availability { get; set; } // A car has availability information
+        public Availability Availability { get; internal set; }
+        //public Availability Availability { get; set; } // A car has availability information
 
     }
 }

@@ -1,32 +1,27 @@
-﻿using Car_Rental_Backend_Application.Data.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Car_Rental_Backend_Application.Data.Dto_s
+public class BookingDto
 {
-    public class BookingDto
-    {
-        public int Booking_ID { get; set; }
+    public int BookingId { get; set; }
 
+    [Required]
+    public int UserId { get; set; } // Foreign Key to User
 
-        [Required]
-        public int User_ID { get; set; } // Foreign Key to User
+    [Required]
+    public int CarId { get; set; } // Foreign Key to Car
 
-        [Required]
-        public int Car_ID { get; set; } // Foreign Key to Car
+    [Required]
+    public DateTime BookingDate { get; set; }
 
-        [Required]
-        public DateTime Booking_Date { get; set; }
+    [Required]
+    public DateTime PickupDate { get; set; }
 
-        [Required]
-        public DateTime Pickup_Date { get; set; }
+    [Required]
+    public DateTime ReturnDate { get; set; }
 
-        [Required]
-        public DateTime Return_Date { get; set; }
+    [Required]
+    public decimal TotalPrice { get; set; }
 
-        [Required]
-        public decimal Total_Price { get; set; }
-
-        // Relationships
-        public ICollection<CancellationDto> Cancellations { get; set; } // A booking can have zero or more cancellations
-    }
+    // Instead of full Cancellation objects, only store Cancellation IDs
+    public List<int> CancellationIds { get; set; } = new List<int>();
 }

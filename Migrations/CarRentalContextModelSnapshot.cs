@@ -22,7 +22,7 @@ namespace Car_Rental_Backend_Application.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Admin", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Admin", b =>
                 {
                     b.Property<int>("Admin_ID")
                         .ValueGeneratedOnAdd()
@@ -44,16 +44,16 @@ namespace Car_Rental_Backend_Application.Migrations
 
                     b.HasKey("Admin_ID");
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admin");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Availability", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Availability", b =>
                 {
                     b.Property<int>("Car_ID")
                         .HasColumnType("int");
 
-                    b.Property<int>("Available_Quantity")
-                        .HasColumnType("int");
+                    b.Property<bool>("Available")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("Pickup_Date")
                         .HasColumnType("datetime2");
@@ -66,36 +66,36 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.ToTable("Availabilities");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Booking", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Booking", b =>
                 {
-                    b.Property<int>("Booking_ID")
+                    b.Property<int>("BookingId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Booking_ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"));
 
                     b.Property<int?>("Admin_ID")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("Booking_Date")
+                    b.Property<DateTime>("BookingDate")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Car_ID")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("Pickup_Date")
+                    b.Property<DateTime>("PickupDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("Return_Date")
+                    b.Property<DateTime>("ReturnDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("Total_Price")
+                    b.Property<decimal>("TotalPrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("User_ID")
                         .HasColumnType("int");
 
-                    b.HasKey("Booking_ID");
+                    b.HasKey("BookingId");
 
                     b.HasIndex("Admin_ID");
 
@@ -106,7 +106,7 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.ToTable("Bookings");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Cancellation", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Cancellation", b =>
                 {
                     b.Property<int>("Cancellation_ID")
                         .ValueGeneratedOnAdd()
@@ -131,7 +131,7 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.ToTable("Cancellations");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Car", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Car", b =>
                 {
                     b.Property<int>("Car_ID")
                         .ValueGeneratedOnAdd()
@@ -163,7 +163,7 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.ToTable("Cars");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Reservation", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Reservation", b =>
                 {
                     b.Property<int>("Reservation_ID")
                         .ValueGeneratedOnAdd()
@@ -195,7 +195,7 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.ToTable("Reservations");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.User", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.User", b =>
                 {
                     b.Property<int>("User_ID")
                         .ValueGeneratedOnAdd()
@@ -228,30 +228,30 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Availability", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Availability", b =>
                 {
-                    b.HasOne("Car_Rental_Backend_Application.Data.Car", "Car")
+                    b.HasOne("Car_Rental_Backend_Application.Data.Entities.Car", "Car")
                         .WithOne("Availability")
-                        .HasForeignKey("Car_Rental_Backend_Application.Data.Availability", "Car_ID")
+                        .HasForeignKey("Car_Rental_Backend_Application.Data.Entities.Availability", "Car_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Car");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Booking", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Booking", b =>
                 {
-                    b.HasOne("Car_Rental_Backend_Application.Data.Admin", null)
+                    b.HasOne("Car_Rental_Backend_Application.Data.Entities.Admin", null)
                         .WithMany("Bookings")
                         .HasForeignKey("Admin_ID");
 
-                    b.HasOne("Car_Rental_Backend_Application.Data.Car", "Car")
+                    b.HasOne("Car_Rental_Backend_Application.Data.Entities.Car", "Car")
                         .WithMany("Bookings")
                         .HasForeignKey("Car_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Car_Rental_Backend_Application.Data.User", "User")
+                    b.HasOne("Car_Rental_Backend_Application.Data.Entities.User", "User")
                         .WithMany("Bookings")
                         .HasForeignKey("User_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -262,9 +262,9 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Cancellation", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Cancellation", b =>
                 {
-                    b.HasOne("Car_Rental_Backend_Application.Data.Booking", "Booking")
+                    b.HasOne("Car_Rental_Backend_Application.Data.Entities.Booking", "Booking")
                         .WithMany("Cancellations")
                         .HasForeignKey("Booking_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -273,15 +273,15 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.Navigation("Booking");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Reservation", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Reservation", b =>
                 {
-                    b.HasOne("Car_Rental_Backend_Application.Data.Car", "Car")
+                    b.HasOne("Car_Rental_Backend_Application.Data.Entities.Car", "Car")
                         .WithMany("Reservations")
                         .HasForeignKey("Car_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Car_Rental_Backend_Application.Data.User", "User")
+                    b.HasOne("Car_Rental_Backend_Application.Data.Entities.User", "User")
                         .WithMany("Reservations")
                         .HasForeignKey("User_ID")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -292,17 +292,17 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Admin", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Admin", b =>
                 {
                     b.Navigation("Bookings");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Booking", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Booking", b =>
                 {
                     b.Navigation("Cancellations");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Car", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.Car", b =>
                 {
                     b.Navigation("Availability")
                         .IsRequired();
@@ -312,7 +312,7 @@ namespace Car_Rental_Backend_Application.Migrations
                     b.Navigation("Reservations");
                 });
 
-            modelBuilder.Entity("Car_Rental_Backend_Application.Data.User", b =>
+            modelBuilder.Entity("Car_Rental_Backend_Application.Data.Entities.User", b =>
                 {
                     b.Navigation("Bookings");
 

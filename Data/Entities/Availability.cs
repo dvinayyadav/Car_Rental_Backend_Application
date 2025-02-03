@@ -15,6 +15,6 @@ namespace Car_Rental_Backend_Application.Data.Entities
         public DateTime Return_Date { get; set; }
 
         [Required]
-        public int Available_Quantity { get; set; }
+        public Boolean Available { get; set; }
     }
 }

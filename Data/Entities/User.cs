@@ -24,7 +24,7 @@ namespace Car_Rental_Backend_Application.Data.Entities
         public string Phone_Number { get; set; }
 
         // Relationships
-        public ICollection<Booking> Bookings { get; set; } // A user can make zero or more bookings
+        public ICollection<Booking> Bookings { get; set; } // A car can be associated with zero or more bookings  
         public ICollection<Reservation> Reservations { get; set; } // A user can make zero or more reservations
     }
 }

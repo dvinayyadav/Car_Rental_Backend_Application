@@ -23,26 +23,29 @@ namespace Car_Rental_Backend_Application.Controllers
         {
             var users = await _context.Users.ToListAsync();
 
-            var userDtos = users.Select(u => new UserDto
-            {
-                User_Id=u.User_ID,
-                Password=u.Password,
-                Username = u.Username,
-                Email = u.Email,
-                Address = u.Address,
-                Phone_Number = u.Phone_Number,
-                BookingIds = u.Bookings?.Select(b => b.Booking_ID).ToList(),
-                ReservationIds = u.Reservations?.Select(r => r.Reservation_ID).ToList()
-            }).ToList();
+            var userDtos = users.Select(u => UserConverters.UserToUserDto(u)).ToList();
 
             return Ok(userDtos);
         }
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        //{
+        //    var users = await _context.Users
+        //        .Include(u => u.Bookings) // Load bookings
+        //        .ThenInclude(b => b.Car) // Load car details if needed
+        //        .Include(u => u.Reservations) // Load reservations
+        //        .ToListAsync();
+
+        //    return Ok(users);
+        //}
+
+
 
 
 
         // GET: api/Users/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<UserDto>> GetUser(int id)
+        [HttpGet("id/{id}")]
+        public async Task<ActionResult<UserDto>> GetUserByIdS([FromRoute] int id)
         {
            
             var user = await _context.Users.FindAsync(id);
@@ -80,11 +83,58 @@ namespace Car_Rental_Backend_Application.Controllers
             return CreatedAtAction(nameof(GetUsers), new { id = user.User_ID }, user);
         }
 
+        // GET: api/Users/5
+        [HttpGet("email/{email}")]
+        public async Task<ActionResult<UserDto>> GetUserByEmail([FromRoute] string email)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == email);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException($"User with email {email} not found.");
+            }
+
+            return Ok(UserConverters.UserToUserDto(user));
+        }
+
+      
+        [HttpGet("phone/{phoneNumber}")]
+        public async Task<ActionResult<UserDto>> GetUserByPhoneNumber([FromRoute] string phoneNumber)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Phone_Number == phoneNumber);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException($"User with Phone Number {phoneNumber} not found.");
+            }
+
+            return Ok(UserConverters.UserToUserDto(user));
+        }
+
+
+        [HttpGet("address/{address}")]
+        public async Task<ActionResult<List<UserDto>>> GetUsersByAddress([FromRoute] string address)
+        {
+            var users = await _context.Users
+                .Where(u => u.Address.Contains(address))
+                .ToListAsync();
+
+            if (users == null || users.Count == 0)
+            {
+                return NotFound($"No users found at address: {address}");
+            }
+
+            return Ok(users.Select(UserConverters.UserToUserDto).ToList());
+        }
+
+
         // PUT: api/Users/5
         //[HttpPut("{id}")]
         //public async Task<IActionResult> PutUser(int id)
         //{
-            
+
         //    return NoContent();
         //}
 
