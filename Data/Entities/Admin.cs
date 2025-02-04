@@ -18,6 +18,5 @@ namespace Car_Rental_Backend_Application.Data.Entities
         public string Password { get; set; }
 
         // Relationships
-        public ICollection<Booking> Bookings { get; set; } // An admin manages zero or more bookings
     }
 }
