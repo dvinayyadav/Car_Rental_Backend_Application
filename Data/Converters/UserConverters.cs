@@ -12,6 +12,7 @@ namespace Car_Rental_Backend_Application.Data.Converters
 
             User user = new User
             {
+                User_ID=ud.User_ID,
                 Username = ud.Username,
                 Password = ud.Password,  // You should hash the password before saving
                 Email = ud.Email,

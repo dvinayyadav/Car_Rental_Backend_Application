@@ -101,5 +101,48 @@ namespace Car_Rental_Backend_Application.Controllers
 
             return NoContent();
         }
+
+        // GET: api/car/available
+        [HttpGet("available")]
+        public async Task<ActionResult<IEnumerable<CarDto>>> GetAvailableCars()
+        {
+            var availableCars = await _context.Cars
+                .Where(c => c.Availability_Status == "Available")
+                .ToListAsync();
+
+            if (!availableCars.Any())
+                return NotFound("No available cars at the moment.");
+
+            var carDtos = availableCars.Select(CarConverters.CarToCarDto).ToList();
+            return Ok(carDtos);
+        }
+
+        [HttpGet("rented")]
+        public async Task<ActionResult<IEnumerable<object>>> GetRentedCars()
+        {
+            var rentedCars = await _context.Cars
+                .Include(c => c.Bookings)
+                .Where(c => c.Availability_Status == "Rented")
+                .Select(c => new
+                {
+                    Car_ID = c.Car_ID,
+                    Brand = c.Brand,
+                    Model = c.Model,
+                    Year = c.Year,
+                    License_Plate = c.License_Plate,
+                    Availability_Status = c.Availability_Status,
+                    BookingId = c.Bookings.OrderByDescending(b => b.BookingDate)
+                                          .Select(b => b.BookingId)
+                                          .FirstOrDefault() // Get the latest booking ID
+                })
+                .ToListAsync();
+
+            if (!rentedCars.Any())
+                return NotFound("No rented cars at the moment.");
+
+            return Ok(rentedCars);
+        }
+
+
     }
 }
