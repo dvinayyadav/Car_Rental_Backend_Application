@@ -1,10 +1,15 @@
-﻿
+﻿using Car_Rental_Backend_Application.Data;
 using Car_Rental_Backend_Application.Data.Converters;
 using Car_Rental_Backend_Application.Data.Dto_s;
 using Car_Rental_Backend_Application.Data.Entities;
 using Car_Rental_Backend_Application.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 namespace Car_Rental_Backend_Application.Controllers
 {
     [Route("api/[controller]")]
@@ -12,166 +17,110 @@ namespace Car_Rental_Backend_Application.Controllers
     public class UsersController : ControllerBase
     {
         private readonly CarRentalContext _context;
+        private readonly EmailService _emailService;
+        private readonly ILogger<UsersController> _logger;
 
-        public UsersController(CarRentalContext context)
+        public UsersController(CarRentalContext context, EmailService emailService, ILogger<UsersController> logger)
         {
             _context = context;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
             var users = await _context.Users.ToListAsync();
-
-            var userDtos = users.Select(u => UserConverters.UserToUserDto(u)).ToList();
-
-            return Ok(userDtos);
+            return Ok(users.Select(UserConverters.UserToUserDto));
         }
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<User>>> GetUsers()
-        //{
-        //    var users = await _context.Users
-        //        .Include(u => u.Bookings) // Load bookings
-        //        .ThenInclude(b => b.Car) // Load car details if needed
-        //        .Include(u => u.Reservations) // Load reservations
-        //        .ToListAsync();
 
-        //    return Ok(users);
-        //}
-
-
-
-
-
-        // GET: api/Users/5
         [HttpGet("id/{id}")]
-        public async Task<ActionResult<UserDto>> GetUserByIdS([FromRoute] int id)
+        public async Task<ActionResult<UserDto>> GetUserById([FromRoute] int id)
         {
-           
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
+                _logger.LogWarning($"User with ID {id} not found.");
                 throw new UserNotFoundException($"User with ID {id} not found.");
             }
-
-            return UserConverters.UserToUserDto(user);
+            return Ok(UserConverters.UserToUserDto(user));
         }
 
-        // POST: api/Users
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(UserDto userdto)
+        public async Task<ActionResult<UserDto>> RegisterUser([FromBody] UserDto userDto)
         {
-            if (userdto == null)
+            if (userDto == null)
                 return BadRequest("User data is required.");
 
-            // Check if email already exists
-            bool emailExists = await _context.Users.AnyAsync(u => u.Email == userdto.Email);
-            if (emailExists)
-            {
-                throw new EmailAlreadyExistsException($"User with Email {userdto.Email} already exists.");
-            }
+            if (await _context.Users.AnyAsync(u => u.Email == userDto.Email))
+                throw new EmailAlreadyExistsException($"User with Email {userDto.Email} already exists.");
 
-            // Check if phone number already exists
-            bool phoneExists = await _context.Users.AnyAsync(u => u.Phone_Number == userdto.Phone_Number);
-            if (phoneExists)
-            {
-                throw new MobileNumberAlreadyExistedException($"User with Phone Number {userdto.Phone_Number} already exists.");
-            }
+            if (await _context.Users.AnyAsync(u => u.Phone_Number == userDto.Phone_Number))
+                throw new MobileNumberAlreadyExistedException($"User with Phone Number {userDto.Phone_Number} already exists.");
 
-            // Convert DTO to Entity
-            User user = UserConverters.UserDtoToUser(userdto);
+            User user = UserConverters.UserDtoToUser(userDto);
 
-            // Check if Car_IDs exist before inserting bookings
             foreach (var booking in user.Bookings)
             {
-                bool carExists = await _context.Cars.AnyAsync(c => c.Car_ID == booking.Car_ID);
-                if (!carExists)
-                {
+                if (!await _context.Cars.AnyAsync(c => c.Car_ID == booking.Car_ID))
                     return BadRequest($"Car with ID {booking.Car_ID} does not exist.");
-                }
             }
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetUsers), new { id = user.User_ID }, user);
+            // ✅ Send Confirmation Email
+            string subject = "Welcome to Car Rental Service!";
+            string message = $"<h3>Hello {user.Username},</h3><p>Thank you for registering with Car Rental Service.</p>";
+            await _emailService.SendEmailAsync(user.Email, subject, message);
+
+            return CreatedAtAction(nameof(GetUserById), new { id = user.User_ID }, UserConverters.UserToUserDto(user));
         }
 
-
-        // GET: api/Users/5
         [HttpGet("email/{email}")]
         public async Task<ActionResult<UserDto>> GetUserByEmail([FromRoute] string email)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == email);
-
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
-            {
                 throw new UserNotFoundException($"User with email {email} not found.");
-            }
 
             return Ok(UserConverters.UserToUserDto(user));
         }
 
-      
         [HttpGet("phone/{phoneNumber}")]
         public async Task<ActionResult<UserDto>> GetUserByPhoneNumber([FromRoute] string phoneNumber)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Phone_Number == phoneNumber);
-
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Phone_Number == phoneNumber);
             if (user == null)
-            {
                 throw new UserNotFoundException($"User with Phone Number {phoneNumber} not found.");
-            }
 
             return Ok(UserConverters.UserToUserDto(user));
         }
-
 
         [HttpGet("address/{address}")]
         public async Task<ActionResult<List<UserDto>>> GetUsersByAddress([FromRoute] string address)
         {
-            var users = await _context.Users
-                .Where(u => u.Address.Contains(address))
-                .ToListAsync();
-
-            if (users == null || users.Count == 0)
-            {
+            var users = await _context.Users.Where(u => u.Address.Contains(address)).ToListAsync();
+            if (!users.Any())
                 return NotFound($"No users found at address: {address}");
-            }
 
-            return Ok(users.Select(UserConverters.UserToUserDto).ToList());
+            return Ok(users.Select(UserConverters.UserToUserDto));
         }
-        // DELETE: api/Users/{id}
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser([FromRoute] int id)
         {
-            var user = await _context.Users
-                .Include(u => u.Bookings)
-                .Include(u => u.Reservations)
-                .FirstOrDefaultAsync(u => u.User_ID == id);
-
+            var user = await _context.Users.Include(u => u.Bookings).Include(u => u.Reservations).FirstOrDefaultAsync(u => u.User_ID == id);
             if (user == null)
-            {
                 throw new UserNotFoundException($"User with ID {id} not found.");
-            }
 
-            // Optional: Ensure no active bookings/reservations before deletion
             if (user.Bookings.Any() || user.Reservations.Any())
-            {
                 return BadRequest($"User with ID {id} has active bookings or reservations and cannot be deleted.");
-            }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return NoContent(); // 204 - Successfully deleted, no response body
+            return NoContent();
         }
-
-
-
-
-
     }
 }

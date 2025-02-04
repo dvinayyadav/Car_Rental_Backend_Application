@@ -6,10 +6,11 @@ namespace Car_Rental_Backend_Application.Data
 {
     public class EmailService
     {
-        private readonly string _smtpServer = "smtp.example.com";  // Update with your SMTP server
-        private readonly int _smtpPort = 587;                      // Update the SMTP port if needed
-        private readonly string _smtpUsername = "your-email@example.com"; // Your email
-        private readonly string _smtpPassword = "your-email-password";  // Your email password
+        private readonly string _smtpServer = "smtp.gmail.com"; // ✅ Gmail SMTP server
+        private readonly int _smtpPort = 587;                   // ✅ Use 587 for TLS
+        private readonly string _smtpUsername = "devaravinay698@gmail.com"; // ✅ Your Gmail
+        private readonly string _smtpPassword = "cmjrfysflvsqfkfu";  // ✅ Use the new app password
+
 
         public async Task SendEmailAsync(string toEmail, string subject, string message)
         {

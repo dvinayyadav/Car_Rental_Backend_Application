@@ -1,3 +1,4 @@
+using Car_Rental_Backend_Application.Data;
 using Car_Rental_Backend_Application.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,8 @@ builder.Services.AddDbContext<CarRentalContext>(options => options.UseSqlServer(
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<EmailService>();
+
 
 var app = builder.Build();
 
