@@ -153,5 +153,31 @@ public class BookingController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+    [HttpGet("between-dates")]
+    public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookingsBetweenDates(
+    [FromQuery] DateTime startDate,
+    [FromQuery] DateTime endDate,
+    [FromQuery] int? userId = null)
+    {
+        if (startDate > endDate)
+            return BadRequest("Start date must be earlier than end date.");
+
+        var query = _context.Bookings
+            .Include(b => b.User)
+            .Include(b => b.Car)
+            .Where(b => b.PickupDate >= startDate && b.ReturnDate <= endDate);
+
+        if (userId.HasValue)
+        {
+            query = query.Where(b => b.User_ID == userId.Value);
+        }
+
+        var bookings = await query.ToListAsync();
+
+        if (!bookings.Any())
+            return NotFound("No bookings found within the specified dates.");
+
+        return Ok(bookings.Select(BookingConverters.BookingToBookingDto));
+    }
 
 }

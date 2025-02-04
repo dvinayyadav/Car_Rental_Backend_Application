@@ -36,6 +36,7 @@ namespace Car_Rental_Backend_Application.Data.Converters
             {
                 User_ID = user.User_ID,
                 Username = user.Username,
+                Password=user.Password,
                 Email = user.Email,
                 Address = user.Address,
                 Phone_Number = user.Phone_Number,  // Ensure consistent naming

@@ -209,7 +209,7 @@ namespace Car_Rental_Backend_Application.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -217,13 +217,19 @@ namespace Car_Rental_Backend_Application.Migrations
 
                     b.Property<string>("Phone_Number")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("User_ID");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Phone_Number")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });

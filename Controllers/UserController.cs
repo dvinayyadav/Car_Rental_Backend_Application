@@ -64,6 +64,20 @@ namespace Car_Rental_Backend_Application.Controllers
             if (userdto == null)
                 return BadRequest("User data is required.");
 
+            // Check if email already exists
+            bool emailExists = await _context.Users.AnyAsync(u => u.Email == userdto.Email);
+            if (emailExists)
+            {
+                throw new EmailAlreadyExistsException($"User with Email {userdto.Email} already exists.");
+            }
+
+            // Check if phone number already exists
+            bool phoneExists = await _context.Users.AnyAsync(u => u.Phone_Number == userdto.Phone_Number);
+            if (phoneExists)
+            {
+                throw new MobileNumberAlreadyExistedException($"User with Phone Number {userdto.Phone_Number} already exists.");
+            }
+
             // Convert DTO to Entity
             User user = UserConverters.UserDtoToUser(userdto);
 
@@ -82,6 +96,7 @@ namespace Car_Rental_Backend_Application.Controllers
 
             return CreatedAtAction(nameof(GetUsers), new { id = user.User_ID }, user);
         }
+
 
         // GET: api/Users/5
         [HttpGet("email/{email}")]
@@ -128,32 +143,35 @@ namespace Car_Rental_Backend_Application.Controllers
 
             return Ok(users.Select(UserConverters.UserToUserDto).ToList());
         }
+        // DELETE: api/Users/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser([FromRoute] int id)
+        {
+            var user = await _context.Users
+                .Include(u => u.Bookings)
+                .Include(u => u.Reservations)
+                .FirstOrDefaultAsync(u => u.User_ID == id);
+
+            if (user == null)
+            {
+                throw new UserNotFoundException($"User with ID {id} not found.");
+            }
+
+            // Optional: Ensure no active bookings/reservations before deletion
+            if (user.Bookings.Any() || user.Reservations.Any())
+            {
+                return BadRequest($"User with ID {id} has active bookings or reservations and cannot be deleted.");
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+
+            return NoContent(); // 204 - Successfully deleted, no response body
+        }
 
 
-        // PUT: api/Users/5
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutUser(int id)
-        //{
 
-        //    return NoContent();
-        //}
 
-        //// DELETE: api/Users/5
-        //[HttpDelete("{id}")]
-        //public async Task<UserDto> DeleteUser(int id)
-        //{
-        //    var user = await _context.Users.FindAsync(id);
-        //    if (user == null)
-        //    {
-        //        throw new UserNotFoundException($"User with ID {id} not found.");
-        //    }
 
-        //    return UserConverters.UserToUserDto(user);
-        //}
-
-        //private bool UserExists(int id)
-        //{
-        //    return _context.Users.Any(e => e.User_ID == id);
-        //}
     }
 }
