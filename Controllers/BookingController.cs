@@ -1,6 +1,8 @@
 ﻿using Car_Rental_Backend_Application.Data;
 using Car_Rental_Backend_Application.Data.Converters;
 using Car_Rental_Backend_Application.Data.Entities;
+using Car_Rental_Backend_Application.Data.RequestDto_s;
+using Car_Rental_Backend_Application.Data.ResponseDto_s;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -21,49 +23,49 @@ public class BookingController : ControllerBase
         _emailService = emailService;
     }
 
+    // POST: api/bookings
     [HttpPost]
-    public async Task<ActionResult<BookingDto>> CreateBooking(BookingDto bookingDto)
+    public async Task<ActionResult<BookingResponseDto>> CreateBooking(BookingRequestDto bookingRequestDto)
     {
-        if (bookingDto == null)
+        if (bookingRequestDto == null)
             return BadRequest("Booking data is required.");
 
         try
         {
             var user = await _context.Users
-                .Include(u => u.Bookings)
-                .FirstOrDefaultAsync(u => u.User_ID == bookingDto.UserId);
+                .Include(u => u.Bookings) // Ensure Bookings collection is included
+                .FirstOrDefaultAsync(u => u.User_ID == bookingRequestDto.User_ID);
 
             if (user == null)
                 return NotFound("User not found.");
 
-            var car = await _context.Cars.FindAsync(bookingDto.CarId);
+            var car = await _context.Cars.FindAsync(bookingRequestDto.Car_ID);
             if (car == null)
                 return NotFound("Car not found.");
 
-            // Check if the car is already rented
-            if (car.Availability_Status == "Rented")
+            // Check if the car is already booked
+            if (car.Availability_Status == "Booked")
                 return BadRequest("Car is currently rented and not available for booking.");
 
-            // Proceed with booking since the car is available
-            var booking = new Booking
-            {
-                User_ID = bookingDto.UserId,
-                Car_ID = bookingDto.CarId,
-                BookingDate = bookingDto.BookingDate,
-                PickupDate = bookingDto.PickupDate,
-                ReturnDate = bookingDto.ReturnDate,
-                TotalPrice = bookingDto.TotalPrice
-            };
+            // Proceed with booking
+            var booking = BookingConverters.BookingRequestDtoToBooking(bookingRequestDto);
 
-            _context.Bookings.Add(booking);
+            // Set foreign keys explicitly (in case DTO conversion doesn't handle it)
+            booking.User_ID = user.User_ID;
+            booking.Car_ID = car.Car_ID;
 
-            // Update car status to "Rented"
-            car.Availability_Status = "Rented";
+            // Add the booking to the user's bookings collection
+            user.Bookings.Add(booking);
+
+            _context.Bookings.Add(booking); // Ensure it's tracked by the DB
+
+            // Update car status to "Booked"
+            car.Availability_Status = "Booked";
             _context.Cars.Update(car);
 
             await _context.SaveChangesAsync();
 
-            var createdBookingDto = BookingConverters.BookingToBookingDto(booking);
+            var createdBookingResponseDto = BookingConverters.BookingToBookingResponseDto(booking);
 
             // Send Booking Confirmation Email
             string emailSubject = "Booking Confirmation - Car Rental";
@@ -84,7 +86,7 @@ public class BookingController : ControllerBase
 
             await _emailService.SendEmailAsync(user.Email, emailSubject, emailBody);
 
-            return CreatedAtAction(nameof(GetBookingById), new { id = createdBookingDto.BookingId }, createdBookingDto);
+            return CreatedAtAction(nameof(GetBookingById), new { id = createdBookingResponseDto.BookingId }, createdBookingResponseDto);
         }
         catch (Exception ex)
         {
@@ -92,10 +94,9 @@ public class BookingController : ControllerBase
         }
     }
 
-
-    // GET: api/bookings/{id}
-    [HttpGet("{id}")]
-    public async Task<ActionResult<BookingDto>> GetBookingById(int id)
+// GET: api/bookings/{id}
+[HttpGet("{id}")]
+    public async Task<ActionResult<BookingResponseDto>> GetBookingById(int id)
     {
         var booking = await _context.Bookings
             .Include(b => b.User)
@@ -105,23 +106,22 @@ public class BookingController : ControllerBase
         if (booking == null)
             return NotFound($"Booking with ID {id} not found.");
 
-        return Ok(BookingConverters.BookingToBookingDto(booking));
+        return Ok(BookingConverters.BookingToBookingResponseDto(booking));
     }
 
     // PUT: api/bookings/{id}
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateBooking(int id, BookingDto bookingDto)
+    public async Task<IActionResult> UpdateBooking(int id, BookingRequestDto bookingRequestDto)
     {
-        if (id != bookingDto.BookingId)
-            return BadRequest("Booking ID mismatch.");
+        
 
         var booking = await _context.Bookings.FindAsync(id);
         if (booking == null)
             return NotFound($"Booking with ID {id} not found.");
 
-        booking.PickupDate = bookingDto.PickupDate;
-        booking.ReturnDate = bookingDto.ReturnDate;
-        booking.TotalPrice = bookingDto.TotalPrice;
+        booking.PickupDate = bookingRequestDto.PickupDate;
+        booking.ReturnDate = bookingRequestDto.ReturnDate;
+        booking.TotalPrice = bookingRequestDto.TotalPrice;
 
         try
         {
@@ -136,7 +136,7 @@ public class BookingController : ControllerBase
 
     // DELETE: api/bookings/{id}
     [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteBooking(int id)
+    public async Task<IActionResult> DeleteBooking(int id)
     {
         var booking = await _context.Bookings.FindAsync(id);
         if (booking == null)
@@ -149,7 +149,7 @@ public class BookingController : ControllerBase
 
     // GET: api/bookings
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BookingDto>>> GetAllBookings()
+    public async Task<ActionResult<IEnumerable<BookingResponseDto>>> GetAllBookings()
     {
         var bookings = await _context.Bookings
             .Include(b => b.User)
@@ -159,12 +159,12 @@ public class BookingController : ControllerBase
         if (!bookings.Any())
             return NotFound("No bookings found.");
 
-        return Ok(bookings.Select(BookingConverters.BookingToBookingDto));
+        return Ok(bookings.Select(BookingConverters.BookingToBookingResponseDto));
     }
 
     // GET: api/bookings/between-dates
     [HttpGet("between-dates")]
-    public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookingsBetweenDates(
+    public async Task<ActionResult<IEnumerable<BookingResponseDto>>> GetBookingsBetweenDates(
         [FromQuery] DateTime startDate,
         [FromQuery] DateTime endDate,
         [FromQuery] int? userId = null)
@@ -185,6 +185,6 @@ public class BookingController : ControllerBase
         if (!bookings.Any())
             return NotFound("No bookings found within the specified dates.");
 
-        return Ok(bookings.Select(BookingConverters.BookingToBookingDto));
+        return Ok(bookings.Select(BookingConverters.BookingToBookingResponseDto));
     }
 }

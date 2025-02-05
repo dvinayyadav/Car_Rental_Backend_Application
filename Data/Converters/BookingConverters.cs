@@ -1,50 +1,49 @@
 ﻿using Car_Rental_Backend_Application.Data.Entities;
+using Car_Rental_Backend_Application.Data.RequestDto_s;
+using Car_Rental_Backend_Application.Data.ResponseDto_s;
+using System;
+using System.Linq;
 
 namespace Car_Rental_Backend_Application.Data.Converters
 {
-    public class BookingConverters
+    public static class BookingConverters
     {
-        public static Booking BookingDtoToBooking(BookingDto bookingDto)
-        {
-            if (bookingDto == null)
-                throw new ArgumentNullException(nameof(bookingDto));
-
-            return new Booking
-            {
-                BookingId = bookingDto.BookingId,
-                User_ID = bookingDto.UserId,
-                Car_ID = bookingDto.CarId,
-                BookingDate = bookingDto.BookingDate,
-                PickupDate = bookingDto.PickupDate,
-                ReturnDate = bookingDto.ReturnDate,
-                TotalPrice = bookingDto.TotalPrice,
-
-                // Cancellations should not be mapped here; handled separately
-                Cancellations = new List<Cancellation>()
-            };
-        }
-
-        public static BookingDto BookingToBookingDto(Booking booking)
+        // Convert Booking Entity to BookingResponseDto (For API response)
+        public static BookingResponseDto BookingToBookingResponseDto(Booking booking)
         {
             if (booking == null)
                 throw new ArgumentNullException(nameof(booking));
 
-            return new BookingDto
+            return new BookingResponseDto
             {
                 BookingId = booking.BookingId,
-                UserId = booking.User_ID,
-                CarId = booking.Car_ID,
+                User_ID = booking.User_ID,
+                UserName = booking.User?.Username, // Assuming User has a Name property
+                Car_ID = booking.Car_ID,
+                CarDetails = $"{booking.Car?.Brand} {booking.Car?.Model}", // Example: Toyota Corolla
                 BookingDate = booking.BookingDate,
                 PickupDate = booking.PickupDate,
                 ReturnDate = booking.ReturnDate,
                 TotalPrice = booking.TotalPrice,
-
-                // Store only Cancellation IDs
-                CancellationIds = booking.Cancellations?
-                    .Select(cancellation => cancellation.Cancellation_ID)
-                    .ToList() ?? new List<int>()
+                CancellationIds = booking.Cancellations?.Select(c => c.Cancellation_ID).ToList() ?? new List<int>()
             };
         }
 
+        // Convert BookingRequestDto to Booking Entity (For Creating/Updating)
+        public static Booking BookingRequestDtoToBooking(BookingRequestDto bookingRequestDto)
+        {
+            if (bookingRequestDto == null)
+                throw new ArgumentNullException(nameof(bookingRequestDto));
+
+            return new Booking
+            {
+                User_ID = bookingRequestDto.User_ID,
+                Car_ID = bookingRequestDto.Car_ID,
+                BookingDate = bookingRequestDto.BookingDate,
+                PickupDate = bookingRequestDto.PickupDate,
+                ReturnDate = bookingRequestDto.ReturnDate,
+                TotalPrice = bookingRequestDto.TotalPrice
+            };
+        }
     }
 }

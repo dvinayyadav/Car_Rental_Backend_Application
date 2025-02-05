@@ -1,52 +1,39 @@
-﻿using Car_Rental_Backend_Application.Data.Dto_s;
-using Car_Rental_Backend_Application.Data.Entities;
+﻿using Car_Rental_Backend_Application.Data.Entities;
+using Car_Rental_Backend_Application.Data.RequestDto_s;
+using Car_Rental_Backend_Application.Data.ResponseDto_s;
 
 namespace Car_Rental_Backend_Application.Data.Converters
 {
-    public class UserConverters
+    public static class UserConverters
     {
-        public static User UserDtoToUser(UserDto ud)
+        public static User RequestUserDtoToUser(UserRequestDto dto)
         {
-            if (ud == null)
-                throw new ArgumentNullException(nameof(ud));
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
 
-            User user = new User
+            return new User
             {
-                User_ID=ud.User_ID,
-                Username = ud.Username,
-                Password = ud.Password,  // You should hash the password before saving
-                Email = ud.Email,
-                Address = ud.Address,
-                Phone_Number = ud.Phone_Number,
-
-                // Since UserDto contains only IDs, we must initialize these as empty lists or retrieve from DB
-                Bookings = ud.BookingIds?.Select(id => new Booking { BookingId = id }).ToList(),
-                Reservations = ud.ReservationIds?.Select(id => new Reservation { Reservation_ID = id }).ToList()
+                Username = dto.Username,
+                Email = dto.Email,
+                Password = dto.Password, // Ideally, hash the password before saving
+                Address = dto.Address,
+                Phone_Number = dto.Phone_Number
             };
-
-            return user;
         }
 
-        // Convert User Entity to UserDto
-        public static UserDto UserToUserDto(User user)
+        public static UserResponseDto UserToResponseUserDto(User user)
         {
-            if (user == null)
-                throw new ArgumentNullException(nameof(user));
+            if (user == null) throw new ArgumentNullException(nameof(user));
 
-            return new UserDto()
+            return new UserResponseDto
             {
                 User_ID = user.User_ID,
                 Username = user.Username,
-                Password=user.Password,
                 Email = user.Email,
                 Address = user.Address,
-                Phone_Number = user.Phone_Number,  // Ensure consistent naming
-
-                // Mapping Booking IDs and Reservation IDs safely
-                BookingIds = user.Bookings?.Select(booking => booking.BookingId).ToList() ?? new List<int>(),
-                ReservationIds = user.Reservations?.Select(reservation => reservation.Reservation_ID).ToList() ?? new List<int>()
+                Phone_Number = user.Phone_Number,
+                BookingIds = user.Bookings?.Select(b => b.BookingId).ToList() ?? new List<int>(),
+                ReservationIds = user.Reservations?.Select(r => r.Reservation_ID).ToList() ?? new List<int>()
             };
         }
-
     }
 }

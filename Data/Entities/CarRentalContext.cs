@@ -18,6 +18,12 @@ namespace Car_Rental_Backend_Application.Data.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Car>()
+        .Property(c => c.Availability_Status)
+        .HasConversion<string>(); // Store as string in DB
+
+
+
             modelBuilder.Entity<User>()
                .HasIndex(u => u.Email)
                .IsUnique();

@@ -1,7 +1,9 @@
-﻿using Car_Rental_Backend_Application.Data;
-using Car_Rental_Backend_Application.Data.Converters;
+﻿using Car_Rental_Backend_Application.Data.Converters;
 using Car_Rental_Backend_Application.Data.Dto_s;
 using Car_Rental_Backend_Application.Data.Entities;
+using Car_Rental_Backend_Application.Data.ENUMS;
+using Car_Rental_Backend_Application.Data.RequestDto_s;
+using Car_Rental_Backend_Application.Data.ResponseDto_s;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -23,21 +25,21 @@ namespace Car_Rental_Backend_Application.Controllers
 
         // GET: api/car
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CarDto>>> GetCars()
+        public async Task<ActionResult<IEnumerable<CarResponseDto>>> GetCars()
         {
             var cars = await _context.Cars
                 .Include(c => c.Bookings)
                 .Include(c => c.Reservations)
                 .ToListAsync();
 
-            var carDtos = cars.Select(car => CarConverters.CarToCarDto(car)).ToList();
+            var carResponseDtos = cars.Select(car => CarConverters.CarToCarResponseDto(car)).ToList();
 
-            return Ok(carDtos);
+            return Ok(carResponseDtos);
         }
 
         // GET: api/car/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<CarDto>> GetCarById(int id)
+        public async Task<ActionResult<CarResponseDto>> GetCarById(int id)
         {
             var car = await _context.Cars
                 .Include(c => c.Bookings)
@@ -47,42 +49,40 @@ namespace Car_Rental_Backend_Application.Controllers
             if (car == null)
                 return NotFound($"Car with ID {id} not found.");
 
-            return Ok(CarConverters.CarToCarDto(car));
+            return Ok(CarConverters.CarToCarResponseDto(car));
         }
 
         // POST: api/car
         [HttpPost]
-        public async Task<ActionResult<CarDto>> CreateCar(CarDto carDto)
+        public async Task<ActionResult<CarResponseDto>> CreateCar(CarRequestDto carRequestDto)
         {
-            if (carDto == null)
+            if (carRequestDto == null)
                 return BadRequest("Car data is required.");
 
-            var car = CarConverters.CarDtoToCar(carDto);
+            var car = CarConverters.CarRequestDtoToCar(carRequestDto);
             _context.Cars.Add(car);
             await _context.SaveChangesAsync();
 
-            var createdCarDto = CarConverters.CarToCarDto(car);
+            var createdCarResponseDto = CarConverters.CarToCarResponseDto(car);
 
-            return CreatedAtAction(nameof(GetCarById), new { id = createdCarDto.Car_ID }, createdCarDto);
+            return CreatedAtAction(nameof(GetCarById), new { id = createdCarResponseDto.Car_ID }, createdCarResponseDto);
         }
 
         // PUT: api/car/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateCar(int id, CarDto carDto)
+        public async Task<IActionResult> UpdateCar(int id, CarRequestDto carRequestDto)
         {
-            if (id != carDto.Car_ID)
-                return BadRequest("Car ID mismatch.");
-
             var car = await _context.Cars.FindAsync(id);
             if (car == null)
                 return NotFound($"Car with ID {id} not found.");
 
-            // Update fields
-            car.Brand = carDto.Brand;
-            car.Model = carDto.Model;
-            car.Year = carDto.Year;
-            car.License_Plate = carDto.License_Plate;
-            car.Availability_Status = carDto.Availability_Status;
+            // Update fields from CarRequestDto
+            car.Brand = carRequestDto.Brand;
+            car.Model = carRequestDto.Model;
+            car.Year = carRequestDto.Year;
+            car.License_Plate = carRequestDto.License_Plate;
+            car.Availability_Status = carRequestDto.Availability_Status;
+
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -104,7 +104,7 @@ namespace Car_Rental_Backend_Application.Controllers
 
         // GET: api/car/available
         [HttpGet("available")]
-        public async Task<ActionResult<IEnumerable<CarDto>>> GetAvailableCars()
+        public async Task<ActionResult<IEnumerable<CarResponseDto>>> GetAvailableCars()
         {
             var availableCars = await _context.Cars
                 .Where(c => c.Availability_Status == "Available")
@@ -113,16 +113,17 @@ namespace Car_Rental_Backend_Application.Controllers
             if (!availableCars.Any())
                 return NotFound("No available cars at the moment.");
 
-            var carDtos = availableCars.Select(CarConverters.CarToCarDto).ToList();
-            return Ok(carDtos);
+            var carResponseDtos = availableCars.Select(CarConverters.CarToCarResponseDto).ToList();
+            return Ok(carResponseDtos);
         }
 
-        [HttpGet("rented")]
+        // GET: api/car/rented
+        [HttpGet("booked")]
         public async Task<ActionResult<IEnumerable<object>>> GetRentedCars()
         {
             var rentedCars = await _context.Cars
                 .Include(c => c.Bookings)
-                .Where(c => c.Availability_Status == "Rented")
+                .Where(c => c.Availability_Status =="Booked")
                 .Select(c => new
                 {
                     Car_ID = c.Car_ID,
@@ -142,7 +143,5 @@ namespace Car_Rental_Backend_Application.Controllers
 
             return Ok(rentedCars);
         }
-
-
     }
 }

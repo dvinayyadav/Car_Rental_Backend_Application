@@ -1,6 +1,5 @@
 ﻿using Car_Rental_Backend_Application.Data;
 using Car_Rental_Backend_Application.Data.Converters;
-using Car_Rental_Backend_Application.Data.Dto_s;
 using Car_Rental_Backend_Application.Data.Entities;
 using Car_Rental_Backend_Application.Exceptions;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +8,8 @@ using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Car_Rental_Backend_Application.Data.RequestDto_s;
+using Car_Rental_Backend_Application.Data.ResponseDto_s;
 
 namespace Car_Rental_Backend_Application.Controllers
 {
@@ -28,14 +29,14 @@ namespace Car_Rental_Backend_Application.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserResponseDto>>> GetUsers()
         {
             var users = await _context.Users.ToListAsync();
-            return Ok(users.Select(UserConverters.UserToUserDto));
+            return Ok(users.Select(UserConverters.UserToResponseUserDto));
         }
 
         [HttpGet("id/{id}")]
-        public async Task<ActionResult<UserDto>> GetUserById([FromRoute] int id)
+        public async Task<ActionResult<UserResponseDto>> GetUserById([FromRoute] int id)
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
@@ -43,28 +44,22 @@ namespace Car_Rental_Backend_Application.Controllers
                 _logger.LogWarning($"User with ID {id} not found.");
                 throw new UserNotFoundException($"User with ID {id} not found.");
             }
-            return Ok(UserConverters.UserToUserDto(user));
+            return Ok(UserConverters.UserToResponseUserDto(user));
         }
 
         [HttpPost]
-        public async Task<ActionResult<UserDto>> RegisterUser([FromBody] UserDto userDto)
+        public async Task<ActionResult<UserResponseDto>> RegisterUser([FromBody] UserRequestDto userRequestDto)
         {
-            if (userDto == null)
+            if (userRequestDto == null)
                 return BadRequest("User data is required.");
 
-            if (await _context.Users.AnyAsync(u => u.Email == userDto.Email))
-                throw new EmailAlreadyExistsException($"User with Email {userDto.Email} already exists.");
+            if (await _context.Users.AnyAsync(u => u.Email == userRequestDto.Email))
+                throw new EmailAlreadyExistsException($"User with Email {userRequestDto.Email} already exists.");
 
-            if (await _context.Users.AnyAsync(u => u.Phone_Number == userDto.Phone_Number))
-                throw new MobileNumberAlreadyExistedException($"User with Phone Number {userDto.Phone_Number} already exists.");
+            if (await _context.Users.AnyAsync(u => u.Phone_Number == userRequestDto.Phone_Number))
+                throw new MobileNumberAlreadyExistedException($"User with Phone Number {userRequestDto.Phone_Number} already exists.");
 
-            User user = UserConverters.UserDtoToUser(userDto);
-
-            foreach (var booking in user.Bookings)
-            {
-                if (!await _context.Cars.AnyAsync(c => c.Car_ID == booking.Car_ID))
-                    return BadRequest($"Car with ID {booking.Car_ID} does not exist.");
-            }
+            User user = UserConverters.RequestUserDtoToUser(userRequestDto);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -74,37 +69,37 @@ namespace Car_Rental_Backend_Application.Controllers
             string message = $"<h3>Hello {user.Username},</h3><p>Thank you for registering with Car Rental Service.</p>";
             await _emailService.SendEmailAsync(user.Email, subject, message);
 
-            return CreatedAtAction(nameof(GetUserById), new { id = user.User_ID }, UserConverters.UserToUserDto(user));
+            return CreatedAtAction(nameof(GetUserById), new { id = user.User_ID }, UserConverters.UserToResponseUserDto(user));
         }
 
         [HttpGet("email/{email}")]
-        public async Task<ActionResult<UserDto>> GetUserByEmail([FromRoute] string email)
+        public async Task<ActionResult<UserResponseDto>> GetUserByEmail([FromRoute] string email)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
                 throw new UserNotFoundException($"User with email {email} not found.");
 
-            return Ok(UserConverters.UserToUserDto(user));
+            return Ok(UserConverters.UserToResponseUserDto(user));
         }
 
         [HttpGet("phone/{phoneNumber}")]
-        public async Task<ActionResult<UserDto>> GetUserByPhoneNumber([FromRoute] string phoneNumber)
+        public async Task<ActionResult<UserResponseDto>> GetUserByPhoneNumber([FromRoute] string phoneNumber)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Phone_Number == phoneNumber);
             if (user == null)
                 throw new UserNotFoundException($"User with Phone Number {phoneNumber} not found.");
 
-            return Ok(UserConverters.UserToUserDto(user));
+            return Ok(UserConverters.UserToResponseUserDto(user));
         }
 
         [HttpGet("address/{address}")]
-        public async Task<ActionResult<List<UserDto>>> GetUsersByAddress([FromRoute] string address)
+        public async Task<ActionResult<List<UserResponseDto>>> GetUsersByAddress([FromRoute] string address)
         {
             var users = await _context.Users.Where(u => u.Address.Contains(address)).ToListAsync();
             if (!users.Any())
                 return NotFound($"No users found at address: {address}");
 
-            return Ok(users.Select(UserConverters.UserToUserDto));
+            return Ok(users.Select(UserConverters.UserToResponseUserDto));
         }
 
         [HttpDelete("{id}")]

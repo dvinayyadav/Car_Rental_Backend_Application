@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Car_Rental_Backend_Application.Data.ENUMS;
 
 namespace Car_Rental_Backend_Application.Data.Entities
 {
@@ -23,8 +24,8 @@ namespace Car_Rental_Backend_Application.Data.Entities
         public string Availability_Status { get; set; } // e.g., Available, Booked
 
         // Relationships
-        public ICollection<Booking> Bookings { get; set; } // A car can be associated with zero or more bookings
-        public ICollection<Reservation> Reservations { get; set; } // A car can be associated with zero or more reservations
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
+        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
         public Availability Availability { get; internal set; }
         //public Availability Availability { get; set; } // A car has availability information
 
