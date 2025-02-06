@@ -6,7 +6,7 @@ namespace Car_Rental_Backend_Application.Data.Entities
     public class Car
     {
         [Key]
-        public int Car_ID { get; set; } // Primary Key
+        public int Car_ID { get; set; } 
 
         [Required]
         public string Brand { get; set; }

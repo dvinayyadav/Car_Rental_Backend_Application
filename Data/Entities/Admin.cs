@@ -17,6 +17,6 @@ namespace Car_Rental_Backend_Application.Data.Entities
         [Required]
         public string Password { get; set; }
 
-        // Relationships
+       
     }
 }

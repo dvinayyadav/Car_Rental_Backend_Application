@@ -2,7 +2,7 @@
 {
     public class UserResponseDto
     {
-        public int User_ID { get; set; } // Primary Key
+        public int User_ID { get; set; } 
 
         public string Username { get; set; }
 

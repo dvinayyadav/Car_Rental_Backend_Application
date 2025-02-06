@@ -6,33 +6,33 @@ namespace Car_Rental_Backend_Application.Data
 {
     public class EmailService
     {
-        private readonly string _smtpServer = "smtp.gmail.com"; // ✅ Gmail SMTP server
-        private readonly int _smtpPort = 587;                   // ✅ Use 587 for TLS
-        private readonly string _smtpUsername = "carrentalsdriveease@gmail.com"; // ✅ Your Gmail
-        private readonly string _smtpPassword = "zigbcftlpozjnenc";  // ✅ Use the new app password
+        private readonly string _smtpServer = "smtp.gmail.com"; 
+        private readonly int _smtpPort = 587;                 
+        private readonly string _smtpUsername = "carrentalsdriveease@gmail.com"; 
+        private readonly string _smtpPassword = "zigbcftlpozjnenc"; 
 
 
         public async Task SendEmailAsync(string toEmail, string subject, string message)
         {
             var emailMessage = new MimeMessage();
 
-            // Set the sender
+          
             emailMessage.From.Add(new MailboxAddress("Car Rental Service", _smtpUsername));
 
-            // ✅ Corrected recipient email format
+           
             emailMessage.To.Add(new MailboxAddress(toEmail, toEmail));
 
-            // Set the subject
+           
             emailMessage.Subject = subject;
 
-            // Set the message body
+         
             var bodyBuilder = new BodyBuilder
             {
-                HtmlBody = message // HTML body for rich email formatting
+                HtmlBody = message 
             };
             emailMessage.Body = bodyBuilder.ToMessageBody();
 
-            // Send the email
+          
             using (var client = new SmtpClient())
             {
                 await client.ConnectAsync(_smtpServer, _smtpPort, false);

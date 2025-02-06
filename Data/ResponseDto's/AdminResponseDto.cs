@@ -2,7 +2,7 @@
 {
     public class AdminResponseDto
     {
-        public int Admin_ID { get; set; }  // Admin ID
+        public int Admin_ID { get; set; }  
 
         public string Username { get; set; }
 

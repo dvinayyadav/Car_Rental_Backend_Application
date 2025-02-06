@@ -1,6 +1,5 @@
 ﻿using Car_Rental_Backend_Application.Data;
 using Car_Rental_Backend_Application.Data.Converters;
-using Car_Rental_Backend_Application.Data.Entities;
 using Car_Rental_Backend_Application.Data.RequestDto_s;
 using Car_Rental_Backend_Application.Data.ResponseDto_s;
 using Car_Rental_Backend_Application.Exceptions;

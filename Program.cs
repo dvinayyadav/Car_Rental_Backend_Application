@@ -1,5 +1,4 @@
 using Car_Rental_Backend_Application.Data;
-using Car_Rental_Backend_Application.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
