@@ -44,16 +44,17 @@ public class CancellationController : ControllerBase
             if (existingCancellation != null)
                 return BadRequest("This booking has already been canceled.");
 
-            // Create Cancellation Entity
+            // ✅ Create Cancellation Entity
             var cancellation = new Cancellation
             {
-                Booking_ID = booking.BookingId, // ✅ Ensure Booking ID is set
+                Booking_ID = booking.BookingId,
                 Cancellation_Date = DateTime.UtcNow,
                 Reason = cancellationRequestDto.Reason
             };
 
+            // ✅ Save Cancellation First
             _context.Cancellations.Add(cancellation);
-            await _context.SaveChangesAsync();  // ✅ Ensure it's saved
+            await _context.SaveChangesAsync();
 
             // ✅ Update Car Availability
             if (booking.Car != null)
@@ -64,9 +65,9 @@ public class CancellationController : ControllerBase
 
             // ✅ Remove Booking
             _context.Bookings.Remove(booking);
-            await _context.SaveChangesAsync();  // Save changes after deletion
+            await _context.SaveChangesAsync(); // Save changes after deletion
 
-            // Send Email Confirmation
+            // ✅ Email Notification
             string emailSubject = "Booking Cancellation Confirmation - Car Rental";
             string emailBody = $@"
         <h2>Dear {booking.User.Username},</h2>
@@ -81,14 +82,14 @@ public class CancellationController : ControllerBase
             <li><strong>Reason:</strong> {cancellation.Reason}</li>
         </ul>
         <p>We hope to serve you again in the future!</p>
-        <p>Best Regards, <br/>Car Rental Team</p>
-    ";
+        <p>Best Regards, <br/>Car Rental Team</p>";
 
             await _emailService.SendEmailAsync(booking.User.Email, emailSubject, emailBody);
 
+            // ✅ Return Response
             var cancellationResponseDto = new CancellationResponseDto
             {
-                Cancellation_ID = cancellation.Cancellation_ID, // ✅ Ensure it's returned
+                Cancellation_ID = cancellation.Cancellation_ID,
                 Booking_ID = cancellation.Booking_ID,
                 Cancellation_Date = cancellation.Cancellation_Date,
                 Reason = cancellation.Reason
@@ -101,6 +102,7 @@ public class CancellationController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+
 
     [HttpGet("{id}")]
     public async Task<ActionResult<CancellationResponseDto>> GetCancellationById(int id)

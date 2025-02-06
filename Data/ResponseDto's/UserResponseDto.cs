@@ -13,6 +13,5 @@
         public string Phone_Number { get; set; }
 
         public List<int> BookingIds { get; set; }
-        public List<int> ReservationIds { get; set; }
     }
 }

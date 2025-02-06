@@ -52,6 +52,10 @@ namespace Car_Rental_Backend_Application.Controllers
         {
             if (userRequestDto == null)
                 return BadRequest("User data is required.");
+            if (StrongPassword(userRequestDto.Password) != true)
+            {
+                throw new PasswordMustBeStringException($"Passsword must cantain one UpperCase,One LowerCase,One Numeric,one Special and size must be greater than 7.");
+            }
 
             if (await _context.Users.AnyAsync(u => u.Email == userRequestDto.Email))
                 throw new EmailAlreadyExistsException($"User with Email {userRequestDto.Email} already exists.");
@@ -105,11 +109,11 @@ namespace Car_Rental_Backend_Application.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser([FromRoute] int id)
         {
-            var user = await _context.Users.Include(u => u.Bookings).Include(u => u.Reservations).FirstOrDefaultAsync(u => u.User_ID == id);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.User_ID == id);
             if (user == null)
                 throw new UserNotFoundException($"User with ID {id} not found.");
 
-            if (user.Bookings.Any() || user.Reservations.Any())
+            if (user.Bookings.Any() )
                 return BadRequest($"User with ID {id} has active bookings or reservations and cannot be deleted.");
 
             _context.Users.Remove(user);
@@ -117,5 +121,29 @@ namespace Car_Rental_Backend_Application.Controllers
 
             return NoContent();
         }
+
+        public static bool StrongPassword(string pwd)
+        {
+            bool hasUpperCase = false;
+            bool hasLowerCase = false;
+            bool hasLength = pwd.Length >= 8; 
+            bool hasDigit = false;
+            bool hasSpecialChar = false;
+
+            foreach (char c in pwd)
+            {
+                if (char.IsUpper(c))
+                    hasUpperCase = true;
+                if (char.IsLower(c))
+                    hasLowerCase = true;
+                if (char.IsDigit(c))
+                    hasDigit = true;
+                if (!char.IsLetterOrDigit(c))
+                    hasSpecialChar = true;
+            }
+
+            return hasUpperCase && hasLowerCase && hasLength && hasDigit && hasSpecialChar;
+        }
+
     }
 }

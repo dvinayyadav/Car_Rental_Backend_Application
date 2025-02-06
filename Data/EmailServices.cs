@@ -8,8 +8,8 @@ namespace Car_Rental_Backend_Application.Data
     {
         private readonly string _smtpServer = "smtp.gmail.com"; // ✅ Gmail SMTP server
         private readonly int _smtpPort = 587;                   // ✅ Use 587 for TLS
-        private readonly string _smtpUsername = "devaravinay698@gmail.com"; // ✅ Your Gmail
-        private readonly string _smtpPassword = "cmjrfysflvsqfkfu";  // ✅ Use the new app password
+        private readonly string _smtpUsername = "carrentalsdriveease@gmail.com"; // ✅ Your Gmail
+        private readonly string _smtpPassword = "zigbcftlpozjnenc";  // ✅ Use the new app password
 
 
         public async Task SendEmailAsync(string toEmail, string subject, string message)

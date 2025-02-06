@@ -1,5 +1,4 @@
 ﻿using Car_Rental_Backend_Application.Data.Converters;
-using Car_Rental_Backend_Application.Data.Dto_s;
 using Car_Rental_Backend_Application.Data.Entities;
 using Car_Rental_Backend_Application.Data.ENUMS;
 using Car_Rental_Backend_Application.Data.RequestDto_s;
@@ -29,7 +28,6 @@ namespace Car_Rental_Backend_Application.Controllers
         {
             var cars = await _context.Cars
                 .Include(c => c.Bookings)
-                .Include(c => c.Reservations)
                 .ToListAsync();
 
             var carResponseDtos = cars.Select(car => CarConverters.CarToCarResponseDto(car)).ToList();
@@ -43,7 +41,6 @@ namespace Car_Rental_Backend_Application.Controllers
         {
             var car = await _context.Cars
                 .Include(c => c.Bookings)
-                .Include(c => c.Reservations)
                 .FirstOrDefaultAsync(c => c.Car_ID == id);
 
             if (car == null)
@@ -143,5 +140,6 @@ namespace Car_Rental_Backend_Application.Controllers
 
             return Ok(rentedCars);
         }
+
     }
 }

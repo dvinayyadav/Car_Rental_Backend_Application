@@ -21,13 +21,10 @@ namespace Car_Rental_Backend_Application.Data.Entities
         public string License_Plate { get; set; }
 
         [Required]
-        public string Availability_Status { get; set; } // e.g., Available, Booked
+        public string Availability_Status { get; set; } 
 
-        // Relationships
+      
         public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
-        public ICollection<Reservation> Reservations { get; set; } = new List<Reservation>();
-        public Availability Availability { get; internal set; }
-        //public Availability Availability { get; set; } // A car has availability information
-
+       
     }
 }

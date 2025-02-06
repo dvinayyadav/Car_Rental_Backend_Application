@@ -1,12 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Car_Rental_Backend_Application.Data.Entities
+namespace Car_Rental_Backend_Application.Data.RequestDto_s
 {
-    public class Admin
+    public class AdminRequestDto
     {
-        [Key]
-        public int Admin_ID { get; set; }
-
         [Required]
         public string Username { get; set; }
 
@@ -16,7 +13,5 @@ namespace Car_Rental_Backend_Application.Data.Entities
 
         [Required]
         public string Password { get; set; }
-
-        // Relationships
     }
 }

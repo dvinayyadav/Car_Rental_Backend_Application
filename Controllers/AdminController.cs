@@ -1,11 +1,14 @@
 ﻿using Car_Rental_Backend_Application.Data;
+using Car_Rental_Backend_Application.Data.Converters;
 using Car_Rental_Backend_Application.Data.Entities;
+using Car_Rental_Backend_Application.Data.RequestDto_s;
+using Car_Rental_Backend_Application.Data.ResponseDto_s;
+using Car_Rental_Backend_Application.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Car_Rental_Backend_Application.Data.Dto_s;
 
 namespace Car_Rental_Backend_Application.Controllers
 {
@@ -20,72 +23,62 @@ namespace Car_Rental_Backend_Application.Controllers
             _context = context;
         }
 
-        // GET: api/Admin
+   
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Admin>>> GetAdmins()
+        public async Task<ActionResult<IEnumerable<AdminResponseDto>>> GetAdmins()
         {
             var admins = await _context.Admin.ToListAsync();
-            return Ok(admins);
+            var adminDtos = admins.Select(AdminConverters.AdminToAdminResponseDto).ToList();
+            return Ok(adminDtos);
         }
 
-        // GET: api/Admin/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Admin>> GetAdminById(int id)
+        public async Task<ActionResult<AdminResponseDto>> GetAdminById(int id)
         {
             var admin = await _context.Admin.FindAsync(id);
-
             if (admin == null)
-            {
                 return NotFound($"Admin with ID {id} not found.");
-            }
 
-            return Ok(admin);
+            return Ok(AdminConverters.AdminToAdminResponseDto(admin));
         }
 
-        // POST: api/Admin
+     
         [HttpPost]
-        public async Task<ActionResult<Admin>> PostAdmin(AdminDto adminDto)
+        public async Task<ActionResult<AdminResponseDto>> CreateAdmin(AdminRequestDto adminRequestDto)
         {
-            if (adminDto == null)
+            if (adminRequestDto == null)
                 return BadRequest("Admin data is required.");
 
-            // Check if admin email already exists
-            var existingAdmin = await _context.Admin
-                .FirstOrDefaultAsync(a => a.Email == adminDto.Email);
-            if (existingAdmin != null)
+            if (UsersController.StrongPassword(adminRequestDto.Password) != true)
             {
-                return BadRequest("Admin with this email already exists.");
+                throw new PasswordMustBeStringException($"Passsword must cantain one UpperCase,One LowerCase,One Numeric,one Special and size must be greater than 7.");
             }
 
-            // Convert DTO to Entity
-            Admin admin = new Admin
-            {
-                Username = adminDto.Username,
-                Email = adminDto.Email,
-                Password = adminDto.Password // In real-world, hash the password
-            };
+            var existingAdmin = await _context.Admin.FirstOrDefaultAsync(a => a.Email == adminRequestDto.Email);
+            if (existingAdmin != null)
+                return BadRequest("Admin with this email already exists.");
 
+           
+            var admin = AdminConverters.AdminRequestDtoToAdmin(adminRequestDto);
+
+           
             _context.Admin.Add(admin);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetAdminById), new { id = admin.Admin_ID }, admin);
+            var createdAdminResponseDto = AdminConverters.AdminToAdminResponseDto(admin);
+            return CreatedAtAction(nameof(GetAdminById), new { id = createdAdminResponseDto.Admin_ID }, createdAdminResponseDto);
         }
 
-        // PUT: api/Admin/5
-        
-        // DELETE: api/Admin/5
+      
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdmin(int id)
         {
             var admin = await _context.Admin.FindAsync(id);
             if (admin == null)
-            {
                 return NotFound($"Admin with ID {id} not found.");
-            }
 
             _context.Admin.Remove(admin);
             await _context.SaveChangesAsync();
-
             return NoContent();
         }
     }

@@ -8,7 +8,7 @@ namespace Car_Rental_Backend_Application.Data.Converters
 {
     public static class BookingConverters
     {
-        // Convert Booking Entity to BookingResponseDto (For API response)
+        
         public static BookingResponseDto BookingToBookingResponseDto(Booking booking)
         {
             if (booking == null)
@@ -18,9 +18,9 @@ namespace Car_Rental_Backend_Application.Data.Converters
             {
                 BookingId = booking.BookingId,
                 User_ID = booking.User_ID,
-                UserName = booking.User?.Username, // Assuming User has a Name property
+                UserName = booking.User?.Username,
                 Car_ID = booking.Car_ID,
-                CarDetails = $"{booking.Car?.Brand} {booking.Car?.Model}", // Example: Toyota Corolla
+                CarDetails = $"{booking.Car?.Brand} {booking.Car?.Model}",
                 BookingDate = booking.BookingDate,
                 PickupDate = booking.PickupDate,
                 ReturnDate = booking.ReturnDate,
@@ -29,7 +29,7 @@ namespace Car_Rental_Backend_Application.Data.Converters
             };
         }
 
-        // Convert BookingRequestDto to Booking Entity (For Creating/Updating)
+       
         public static Booking BookingRequestDtoToBooking(BookingRequestDto bookingRequestDto)
         {
             if (bookingRequestDto == null)

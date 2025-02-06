@@ -8,17 +8,16 @@ namespace Car_Rental_Backend_Application.Data.Entities
     public class Booking
     {
         [Key]
-        public int BookingId { get; set; } // Primary Key
+        public int BookingId { get; set; } 
 
         [Required]
         [ForeignKey("User")]
-        public int User_ID { get; set; } // Foreign Key to User
-        public User User { get; set; } // Navigation property
-
+        public int User_ID { get; set; } 
+        public User User { get; set; } 
         [Required]
         [ForeignKey("Car")]
-        public int Car_ID { get; set; } // Foreign Key to Car
-        public Car Car { get; set; } // Navigation property
+        public int Car_ID { get; set; } 
+        public Car Car { get; set; }
 
         [Required]
         public DateTime BookingDate { get; set; }
@@ -32,7 +31,7 @@ namespace Car_Rental_Backend_Application.Data.Entities
         [Required]
         public decimal TotalPrice { get; set; }
 
-        // Relationships
-        public ICollection<Cancellation> Cancellations { get; set; } = new List<Cancellation>(); // Prevents null reference issues
+       
+        public ICollection<Cancellation> Cancellations { get; set; } = new List<Cancellation>();
     }
 }
