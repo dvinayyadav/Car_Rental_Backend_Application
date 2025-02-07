@@ -41,44 +41,23 @@ namespace Car_Rental_Backend_Application.Controllers
             return Ok(AdminConverters.AdminToAdminResponseDto(admin));
         }
 
-     
-        [HttpPost]
-        public async Task<ActionResult<AdminResponseDto>> CreateAdmin(AdminRequestDto adminRequestDto)
+    
+
+        [HttpPost("login")]
+        public async Task<ActionResult<string>> Login(AdminRequestLoginDto loginDto)
         {
-            if (adminRequestDto == null)
-                return BadRequest("Admin data is required.");
+            if (loginDto == null)
+                return BadRequest("Login data is required.");
 
-            if (UsersController.StrongPassword(adminRequestDto.Password) != true)
-            {
-                throw new PasswordMustBeStringException($"Passsword must cantain one UpperCase,One LowerCase,One Numeric,one Special and size must be greater than 7.");
-            }
+            var admin = await _context.Admin
+                .FirstOrDefaultAsync(a => (a.Email == loginDto.UsernameOrEmail || a.Username == loginDto.UsernameOrEmail)
+                                          && a.Password == loginDto.Password);
 
-            var existingAdmin = await _context.Admin.FirstOrDefaultAsync(a => a.Email == adminRequestDto.Email);
-            if (existingAdmin != null)
-                return BadRequest("Admin with this email already exists.");
-
-           
-            var admin = AdminConverters.AdminRequestDtoToAdmin(adminRequestDto);
-
-           
-            _context.Admin.Add(admin);
-            await _context.SaveChangesAsync();
-
-            var createdAdminResponseDto = AdminConverters.AdminToAdminResponseDto(admin);
-            return CreatedAtAction(nameof(GetAdminById), new { id = createdAdminResponseDto.Admin_ID }, createdAdminResponseDto);
-        }
-
-      
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAdmin(int id)
-        {
-            var admin = await _context.Admin.FindAsync(id);
             if (admin == null)
-                return NotFound($"Admin with ID {id} not found.");
+                return Unauthorized("Invalid credentials.");
 
-            _context.Admin.Remove(admin);
-            await _context.SaveChangesAsync();
-            return NoContent();
+            return Ok($"Welcome, {admin.Username}! Login successful.");
         }
+
     }
 }

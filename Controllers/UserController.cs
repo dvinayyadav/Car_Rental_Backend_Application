@@ -122,6 +122,22 @@ namespace Car_Rental_Backend_Application.Controllers
             return NoContent();
         }
 
+        [HttpPost("login")]
+        public async Task<ActionResult<string>> Login([FromBody] AdminRequestLoginDto loginDto)
+        {
+            if (loginDto == null)
+                return BadRequest("Login data is required.");
+
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => (u.Email == loginDto.UsernameOrEmail || u.Username == loginDto.UsernameOrEmail)
+                                          && u.Password == loginDto.Password);
+
+            if (user == null)
+                return Unauthorized("Invalid credentials.");
+
+            return Ok($"Welcome, {user.Username}! Login successful.");
+        }
+
         public static bool StrongPassword(string pwd)
         {
             bool hasUpperCase = false;

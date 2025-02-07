@@ -24,7 +24,7 @@ namespace Car_Rental_Backend_Application.Data.Entities
         [Phone]
         public string Phone_Number { get; set; }
 
-       
-        public ICollection<Booking> Bookings { get; set; } 
+
+        public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
     }
 }

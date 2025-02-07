@@ -14,7 +14,7 @@ namespace Car_Rental_Backend_Application.Data.Converters
             {
                 Username = dto.Username,
                 Email = dto.Email,
-                Password = dto.Password, 
+                Password = dto.Password,
                 Address = dto.Address,
                 Phone_Number = dto.Phone_Number
             };
@@ -31,8 +31,7 @@ namespace Car_Rental_Backend_Application.Data.Converters
                 Email = user.Email,
                 Address = user.Address,
                 Phone_Number = user.Phone_Number,
-                BookingIds = user.Bookings?.Select(b => b.BookingId).ToList() ?? new List<int>(),
-              
+                BookingIds = user.Bookings?.Select(b => b.BookingId).ToList() ?? new List<int>() 
             };
         }
     }
